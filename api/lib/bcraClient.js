@@ -39,8 +39,21 @@ export async function bcraGet(path, params = {}) {
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
+    // Intentamos parsear el body como JSON (el BCRA suele devolver algo tipo
+    // {"status":400,"errorMessages":["..."]}). Si no es JSON, mostramos el
+    // texto crudo tal cual, recortado para no ensuciar la respuesta.
+    let detalle = body;
+    try {
+      const json = JSON.parse(body);
+      detalle = json.errorMessages?.join(" | ") || json.message || JSON.stringify(json);
+    } catch {
+      // no era JSON, dejamos el texto tal cual
+    }
+    if (detalle && detalle.length > 300) detalle = detalle.slice(0, 300) + "…";
+
     const err = new Error(
-      `BCRA API respondió ${res.status} ${res.statusText} para ${url.pathname}${url.search}`
+      `BCRA API respondió ${res.status} ${res.statusText} para ${url.pathname}${url.search}` +
+        (detalle ? ` — Detalle: ${detalle}` : "")
     );
     err.status = res.status;
     err.body = body;
