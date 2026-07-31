@@ -34,7 +34,11 @@ export default function IndicatorPicker({ value, onSelect }) {
   }, [query]);
 
   function elegirDestacado(d) {
-    onSelect({ tipo: "cambiaria", moneda: d.moneda, descripcion: d.descripcion });
+    if (d.tipo === "monetaria") {
+      onSelect({ tipo: "monetaria", id: d.id, descripcion: d.descripcion });
+    } else {
+      onSelect({ tipo: "cambiaria", moneda: d.moneda, descripcion: d.descripcion });
+    }
     setAbierto(false);
     setQuery("");
   }
@@ -65,12 +69,12 @@ export default function IndicatorPicker({ value, onSelect }) {
           <div className="indicator-chip-row">
             {destacados.map((d) => (
               <button
-                key={d.moneda}
+                key={`${d.tipo}-${d.moneda || d.id}`}
                 type="button"
                 className="preset-chip"
                 onClick={() => elegirDestacado(d)}
               >
-                {d.moneda}
+                {d.label || d.moneda}
               </button>
             ))}
           </div>
